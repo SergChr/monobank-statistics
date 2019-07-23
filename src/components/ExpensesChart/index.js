@@ -1,7 +1,12 @@
 import React, { PureComponent } from 'react';
 import { ResponsivePie } from '@nivo/pie';
+import { Collapse } from 'antd';
 
-import { getMCCById, getStatements } from '../../utils/helpers';
+import Legend from '../Legend';
+import { getStatements } from '../../utils/helpers';
+import { getMonthlyExpenses, getWeeklyExpenses } from './helpers';
+
+const { Panel } = Collapse;
 
 export default class ExpensesChart extends PureComponent {
   state = {
@@ -16,42 +21,26 @@ export default class ExpensesChart extends PureComponent {
   render () {
     const { data } = this.state;
 
-    const date = new Date(), y = date.getFullYear(), m = date.getMonth();
-    const firstDayOfMonth = +new Date(y, m, 1) / 1000;
-    const lastDayOfMonth = +new Date(y, m + 1, 0) / 1000;
+    const [monthlyExpenses, totalMonthSpent] = getMonthlyExpenses(data);
+    const weeklyExpenses = getWeeklyExpenses(data);
 
-    const monthData = data.filter(
-      item => item.time <= lastDayOfMonth && item.time >= firstDayOfMonth
-    );
-    const MCCs = new Set(data.map(item => item.mcc));
-    const byMCC = Array.from(MCCs).map(mcc => {
-      const targetData = monthData.filter(item => item.mcc === mcc);
-      return {
-        mcc: {
-          code: mcc,
-          description: getMCCById(mcc),
-        },
-        description: Array.from(new Set(targetData.map(item => item.description))),
-        value: targetData
-          .map(item => item.amount)
-          .reduce((a, b) => a + b)
-      }
-    });
-    console.log('byMCC', byMCC);
-
-    const chartData = byMCC.map(item => ({
-      id: item.mcc.description,
-      label: item.mcc.description,
-      value: item.value
-    }))
-    
     return (
-      <ResponsivePie
-        data={chartData}
-        colors={{ scheme: 'nivo' }}
-        borderWidth={1}
-        animate={true}
-      />
+      <Collapse>
+        <Panel header='Monthly expenses'>
+          <div>Total money spent: {totalMonthSpent}</div>
+          <div style={{ height: '300px' }}>
+            <ResponsivePie
+              data={monthlyExpenses}
+              colors={pie => pie.color}
+              sortByValue
+              innerRadius={0.3}
+              padAngle={1}
+              enableRadialLabels={false}
+            />
+          </div>
+          <Legend data={monthlyExpenses} />
+        </Panel>
+      </Collapse>
     )
   }
 }

@@ -3,5 +3,8 @@
   "github": {
     "enabled": true
   },
-  "version": 1
+  "version": 1,
+  "static": {
+    "public": "build"
+  }
 }

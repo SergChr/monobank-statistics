@@ -11,7 +11,7 @@ const { Content } = Layout;
 
 export default () => (
   <Router>
-    <Layout style={{ height: '100%' }}>
+    <Layout style={{ minHeight: '100vh' }}>
       <Content>
         <Suspense fallback={<div>Loading...</div>}>
           <Route path='/' component={ExpensesChart} />

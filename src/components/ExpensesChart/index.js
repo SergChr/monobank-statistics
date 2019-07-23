@@ -1,6 +1,5 @@
 import React, { PureComponent } from 'react';
 import { ResponsivePie } from '@nivo/pie';
-import { Collapse } from 'antd';
 
 import Legend from '../Legend';
 import { getStatements } from '../../utils/helpers';
@@ -10,9 +9,29 @@ import {
   getCurrentMonth,
   getCurrentWeekRange,
   getDayExpenses,
+  getCurrentBalance,
 } from './helpers';
+import { Card, Content, Dashboard } from './styled';
 
-const { Panel } = Collapse;
+const Pie = ({ data }) => (
+  <>
+    {data.length ?
+      <>
+      <div style={{ height: '300px' }}>
+        <ResponsivePie
+          data={data}
+          colors={pie => pie.color}
+          sortByValue
+          innerRadius={0.3}
+          padAngle={1}
+          enableRadialLabels={false}
+        />
+      </div>
+      <Legend data={data} />
+      </> : null
+    }
+  </>
+)
 
 export default class ExpensesChart extends PureComponent {
   state = {
@@ -30,54 +49,31 @@ export default class ExpensesChart extends PureComponent {
     const [monthlyExpenses, totalMonthSpent] = getMonthlyExpenses(data);
     const [weeklyExpenses, totalWeekSpent] = getWeeklyExpenses(data);
     const [dayExpenses, totalDaySpent] = getDayExpenses(data);
+    const currentWeekRange = getCurrentWeekRange();
 
     return (
-      <Collapse>
-        <Panel header={`Monthly expenses (${getCurrentMonth()})`}>
+      <Content>
+        <Dashboard>
+          Balance: {getCurrentBalance(data)}
+        </Dashboard>
+        <Card>
+          <h2>Monthly expenses, % ({getCurrentMonth()})</h2>
           <div>Total money spent: {totalMonthSpent}</div>
-          <div style={{ height: '300px' }}>
-            <ResponsivePie
-              data={monthlyExpenses}
-              colors={pie => pie.color}
-              sortByValue
-              innerRadius={0.3}
-              padAngle={1}
-              enableRadialLabels={false}
-            />
-          </div>
-          <Legend data={monthlyExpenses} />
-        </Panel>
+          <Pie data={monthlyExpenses} />
+        </Card>
 
-        <Panel header={`Weekly expenses (${getCurrentWeekRange().from} - ${getCurrentWeekRange().to})`}>
+        <Card>
+          <h2>Weekly expenses, % ({currentWeekRange.from} - {currentWeekRange.to})</h2>
           <div>Total money spent: {totalWeekSpent}</div>
-          <div style={{ height: '300px' }}>
-            <ResponsivePie
-              data={weeklyExpenses}
-              colors={pie => pie.color}
-              sortByValue
-              innerRadius={0.3}
-              padAngle={1}
-              enableRadialLabels={false}
-            />
-          </div>
-          <Legend data={weeklyExpenses} />
-        </Panel>
+          <Pie data={weeklyExpenses} />
+        </Card>
 
-        <Panel header={`This day expenses`}>
+        <Card>
+          <h2>This day expenses, %</h2>
           <div>Total money spent: {totalDaySpent}</div>
-          <div style={{ height: '300px' }}>
-            <ResponsivePie
-              data={dayExpenses}
-              colors={pie => pie.color}
-              sortByValue
-              innerRadius={0.3}
-              padAngle={1}
-              enableRadialLabels={false}
-            />
-          </div>
-          <Legend data={dayExpenses} />
-        </Panel>
-      </Collapse>
+          <Pie data={dayExpenses} />
+        </Card>
+      </Content>
     )
   }
 }

@@ -1,5 +1,6 @@
+import { get } from 'lodash-es';
+
 import { getMCCById, COLORS } from '../../utils/helpers';
-import { format } from 'url';
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -16,6 +17,12 @@ const getUniqueMCCs = data => Array.from(new Set(data.map(item => item.mcc)));
 
 export const getCurrentMonth = () => MONTH_NAMES[new Date().getMonth()];
 export const getMonthNameByDate = date => MONTH_NAMES[date.getMonth()];
+
+export function getCurrentBalance (data = []) {
+  const sortedByTime = data.sort((a, b) => b.time - a.time);
+
+  return get(sortedByTime, '[0].balance', 0) / 100;
+}
 
 export function getCurrentWeekRange () {
   const DAY_IN_MS = 1000 * 60 * 60 * 24,
@@ -107,5 +114,5 @@ export function getDayExpenses (data) {
   to.setMinutes(59);
   to.setSeconds(59);
 
-  return calcExpensesForPeriod({ from, to, data });
+  return calcExpensesForPeriod({ from: from / 1000, to: to / 1000, data });
 }

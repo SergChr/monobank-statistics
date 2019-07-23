@@ -1,4 +1,10 @@
 import { getMCCById, COLORS } from '../../utils/helpers';
+import { format } from 'url';
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
 
 function isOtherMCC (mcc) {
   // Deposits or money transfers
@@ -6,24 +12,39 @@ function isOtherMCC (mcc) {
 }
 
 const round = n => Math.round(n * 100) / 100;
+const getUniqueMCCs = data => Array.from(new Set(data.map(item => item.mcc)));
 
-export function getMonthlyExpenses (data) {
-  const date = new Date(), y = date.getFullYear(), m = date.getMonth();
-  const firstDayOfMonth = +new Date(y, m, 1) / 1000;
-  const lastDayOfMonth = +new Date(y, m + 1, 0) / 1000;
+export const getCurrentMonth = () => MONTH_NAMES[new Date().getMonth()];
+export const getMonthNameByDate = date => MONTH_NAMES[date.getMonth()];
 
-  const monthData = data.filter(
-    item => item.time <= lastDayOfMonth &&
-      item.time >= firstDayOfMonth &&
+export function getCurrentWeekRange () {
+  const DAY_IN_MS = 1000 * 60 * 60 * 24,
+    DAYS_IN_A_WEEK = 7;
+
+  const date = new Date();
+  const day = date.getDay() - 1;
+  const from = new Date(Date.now() - day * DAY_IN_MS);
+  const to = new Date(Date.now() + (DAYS_IN_A_WEEK - day) * DAY_IN_MS);
+  const fromString = `${from.getDate()} ${getMonthNameByDate(from)}`,
+    toString = `${to.getDate()} ${getMonthNameByDate(to)}`;
+
+  return { from: fromString, to: toString };
+}
+
+function calcExpensesForPeriod ({ from, to = Infinity, data }) {
+  const periodData = data.filter(
+    item => item.time <= to &&
+      item.time >= from &&
+      // get negative values (expenses)
       item.amount < 0
   );
-  const MCCs = new Set(data.map(item => item.mcc));
-  const byMCC = Array.from(MCCs).map(mcc => {
+  const MCCs = getUniqueMCCs(periodData);
+  const byMCC = MCCs.map(mcc => {
     if (isOtherMCC(mcc)) {
       return;
     }
 
-    const targetData = monthData.filter(item => item.mcc === mcc);
+    const targetData = periodData.filter(item => item.mcc === mcc);
 
     return {
       mcc: {
@@ -54,6 +75,37 @@ export function getMonthlyExpenses (data) {
   return [chartData, round(totalExpenses)];
 }
 
+export function getMonthlyExpenses (data) {
+  const date = new Date(), y = date.getFullYear(), m = date.getMonth();
+  const firstDayOfMonth = +new Date(y, m, 1) / 1000;
+  const lastDayOfMonth = +new Date(y, m + 1, 0) / 1000;
+
+  return calcExpensesForPeriod({ from: firstDayOfMonth, to: lastDayOfMonth, data });
+}
+
 export function getWeeklyExpenses (data) {
-  return;
+  const [date, day] = [new Date().getDate(), new Date().getDay()];
+  let startOfAWeek = new Date();
+  // starts from Monday, thus + 1
+  startOfAWeek.setDate(date - day + 1);
+  startOfAWeek.setHours(0);
+  startOfAWeek.setMinutes(0);
+  startOfAWeek.setSeconds(0);
+  // in seconds
+  startOfAWeek = startOfAWeek / 1000;
+
+  return calcExpensesForPeriod({ from: startOfAWeek, data });
+}
+
+export function getDayExpenses (data) {
+  const [from, to] = [new Date(), new Date()];
+  from.setHours(0);
+  from.setMinutes(0);
+  from.setSeconds(0);
+
+  to.setHours(23);
+  to.setMinutes(59);
+  to.setSeconds(59);
+
+  return calcExpensesForPeriod({ from, to, data });
 }

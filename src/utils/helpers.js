@@ -35,9 +35,10 @@ export function getMCCById (id) {
 
 export async function getStatements () {
   const lastApiCall = await Config.get('lastApiCall') || 0;
+  const token = await Config.get('token');
   const isLastApiCallWasPerformedRecently = (Date.now() - lastApiCall) < SIXTY_SECONDS;
 
-  if (!isLastApiCallWasPerformedRecently) {
+  if (!isLastApiCallWasPerformedRecently && token) {
     await fetchStatements();
   }
 
@@ -48,7 +49,6 @@ export async function getStatements () {
 }
 
 async function fetchStatements () {
-  console.log('fetchStatements called');
   const api = await getApiInstance();
 
   // TODO: fetch all available data, not for 1 last month

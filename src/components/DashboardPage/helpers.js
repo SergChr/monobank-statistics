@@ -24,6 +24,25 @@ export function getCurrentBalance (data = []) {
   return get(sortedByTime, '[0].balance', 0) / 100;
 }
 
+export function getAverageDaySpendingInThisMonth (data) {
+  const date = new Date(), y = date.getFullYear(), m = date.getMonth();
+  const firstDayOfMonth = +new Date(y, m, 1) / 1000;
+  const lastDayOfMonth = +new Date(y, m + 1, 0) / 1000;
+
+  const periodData = data.filter(
+    item => item.time <= lastDayOfMonth &&
+      item.time >= firstDayOfMonth &&
+      // get negative values (expenses)
+      item.amount < 0
+  );
+  const totalExpenses = periodData
+    .filter(item => !isOtherMCC(item.mcc))
+    .map(item => Math.abs(item.amount))
+    .reduce((a, b) => a + b, 0);
+
+  return round(totalExpenses / 100 / date.getDate());
+}
+
 export function getCurrentWeekRange () {
   const DAY_IN_MS = 1000 * 60 * 60 * 24,
     DAYS_IN_A_WEEK = 7;

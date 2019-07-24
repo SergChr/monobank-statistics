@@ -5,7 +5,7 @@ import { Layout } from 'antd';
 import PromptTokenModal from './components/PromptTokenModal';
 import Menu from './components/Menu';
 
-const ExpensesChart = React.lazy(() => import('./components/ExpensesChart'));
+const DashboardPage = React.lazy(() => import('./components/DashboardPage'));
 
 const { Content } = Layout;
 
@@ -14,7 +14,7 @@ export default () => (
     <Layout style={{ minHeight: '100vh' }}>
       <Content>
         <Suspense fallback={<div>Loading...</div>}>
-          <Route path='/' component={ExpensesChart} />
+          <Route path='/' component={DashboardPage} />
         </Suspense>
       </Content>
       <Menu />

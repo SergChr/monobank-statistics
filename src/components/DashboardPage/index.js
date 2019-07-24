@@ -10,6 +10,7 @@ import {
   getCurrentWeekRange,
   getDayExpenses,
   getCurrentBalance,
+  getAverageDaySpendingInThisMonth,
 } from './helpers';
 import { Card, Content, Dashboard } from './styled';
 
@@ -33,7 +34,7 @@ const Pie = ({ data }) => (
   </>
 )
 
-export default class ExpensesChart extends PureComponent {
+export default class DashboardPage extends PureComponent {
   state = {
     data: [],
   }
@@ -54,7 +55,8 @@ export default class ExpensesChart extends PureComponent {
     return (
       <Content>
         <Dashboard>
-          Balance: {getCurrentBalance(data)}
+          Balance: {getCurrentBalance(data)} <br />
+          Average day spending in this month: {getAverageDaySpendingInThisMonth(data)}
         </Dashboard>
         <Card>
           <h2>Monthly expenses, % ({getCurrentMonth()})</h2>
